@@ -3,32 +3,17 @@ var React = require('react');
 
 var EditorBackground = React.createClass({
 
-  width: function() {
-    return this.props.charWidth * this.props.widthInChars;
+  retinaWidth: function() {
+    return 2 * this.props.charWidth * this.props.widthInChars;
   },
 
-  height: function() {
-    return this.props.charHeight * this.props.heightInChars;
-  },
-
-  renderWidth: function() {
-    return 2 * this.width();
-  },
-
-  renderHeight: function() {
-    return 2 * this.height();
+  retinaHeight: function() {
+    return 2 * this.props.charHeight * this.props.heightInChars;
   },
 
   render: function() {
-    var style = {
-      width: this.width(),
-      height: this.height(),
-      top:  'calc(40% - ' + (this.width() / 2) + 'px)',
-      left: 'calc(50% - ' + (this.height() / 2) + 'px)'
-    };
-
     return (
-      <canvas style={style} width={this.renderWidth()} height={this.renderHeight()} className='editor-background'></canvas>
+      <canvas className={this.props.className} width={this.retinaWidth()} height={this.retinaHeight()} />
     );
   },
 
@@ -42,34 +27,34 @@ var EditorBackground = React.createClass({
 
   drawGrid: function() {
     var context = this.getDOMNode().getContext('2d');
-    var charWidth = this.props.charWidth;
-    var charHeight = this.props.charHeight;
-    var renderWidth = this.renderWidth();
-    var renderHeight = this.renderHeight();
+    var renderCharWidth = 2 * this.props.charWidth;
+    var renderCharHeight = 2 * this.props.charHeight;
+    var retinaWidth = this.retinaWidth();
+    var retinaHeight = this.retinaHeight();
 
     context.beginPath();
-    context.clearRect(0, 0, this.renderWidth(), this.renderHeight());
+    context.clearRect(0, 0, retinaWidth, retinaHeight);
 
     var x = 0;
-    while (x < renderWidth) {
-      x += (2 * charWidth);
+    while (x <= retinaWidth) {
       context.beginPath();
-      context.lineWidth="0.5";
+      context.lineWidth = '0.5';
       context.moveTo(x, 0);
-      context.lineTo(x, renderHeight);
+      context.lineTo(x, retinaHeight);
       context.stroke();
+      x += renderCharWidth;
     }
 
     var y = 0;
-    while (y < renderHeight) {
-      y += (2 * charHeight);
+    while (y <= retinaHeight) {
       context.beginPath();
-      context.lineWidth="0.5";
+      context.lineWidth = '0.5';
       context.moveTo(0, y);
-      context.lineTo(renderWidth, y);
+      context.lineTo(retinaWidth, y);
       context.stroke();
+      y += renderCharHeight;
     }
-  },
+  }
 
 });
 

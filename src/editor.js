@@ -1,5 +1,7 @@
 /** @jsx React.DOM */
 var React = require('react');
+var EditorBackground = require('./editor_background');
+var ContentEditable = require('./content_editable');
 
 var Editor = React.createClass({
   width: function() {
@@ -19,24 +21,11 @@ var Editor = React.createClass({
     };
 
     return (
-      <div className='editor' contentEditable style={style} onInput={this.emitChange} onBlur={this.emitChange} dangerouslySetInnerHTML={{__html: this.props.html}} />
+      <div className='editor' style={style}>
+        <EditorBackground className='editor-content' charWidth={this.props.charWidth} charHeight={this.props.charHeight} widthInChars={this.props.widthInChars} heightInChars={this.props.heightInChars} />
+        <ContentEditable className='editor-content' />
+      </div>
     );
-  },
-
-  shouldComponentUpdate: function(nextProps){
-    return nextProps.html !== this.getDOMNode().innerHTML;
-  },
-
-  emitChange: function(){
-    var html = this.getDOMNode().innerHTML;
-    if (this.props.onChange && html !== this.lastHtml) {
-      this.props.onChange({
-        target: {
-          value: html
-        }
-      });
-    }
-    this.lastHtml = html;
   }
 });
 

@@ -17397,6 +17397,36 @@ module.exports = require('./lib/React');
 },{"./lib/React":25}],137:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
+var ContentEditable = React.createClass({displayName: 'ContentEditable',
+
+  render: function(){
+    return (
+      React.DOM.div( {className:this.props.className, onInput:this.emitChange, onBlur:this.emitChange, contentEditable:true, dangerouslySetInnerHTML:{__html: this.props.html}} )
+    );
+  },
+
+  shouldComponentUpdate: function(nextProps){
+    return nextProps.html !== this.getDOMNode().innerHTML;
+  },
+
+  emitChange: function(){
+    var html = this.getDOMNode().innerHTML;
+
+    if (this.props.onChange && html !== this.lastHtml) {
+      this.props.onChange({target: {value: html}});
+    }
+
+    this.lastHtml = html;
+  }
+
+});
+
+module.exports = ContentEditable;
+},{"react":136}],138:[function(require,module,exports){
+/** @jsx React.DOM */
+var React = require('react');
+var EditorBackground = require('./editor_background');
+var ContentEditable = require('./content_editable');
 
 var Editor = React.createClass({displayName: 'Editor',
   width: function() {
@@ -17416,60 +17446,32 @@ var Editor = React.createClass({displayName: 'Editor',
     };
 
     return (
-      React.DOM.div( {className:"editor", contentEditable:true, style:style, onInput:this.emitChange, onBlur:this.emitChange, dangerouslySetInnerHTML:{__html: this.props.html}} )
+      React.DOM.div( {className:"editor", style:style}, 
+        EditorBackground( {className:"editor-content", charWidth:this.props.charWidth, charHeight:this.props.charHeight, widthInChars:this.props.widthInChars, heightInChars:this.props.heightInChars} ),
+        ContentEditable( {className:"editor-content"} )
+      )
     );
-  },
-
-  shouldComponentUpdate: function(nextProps){
-    return nextProps.html !== this.getDOMNode().innerHTML;
-  },
-
-  emitChange: function(){
-    var html = this.getDOMNode().innerHTML;
-    if (this.props.onChange && html !== this.lastHtml) {
-      this.props.onChange({
-        target: {
-          value: html
-        }
-      });
-    }
-    this.lastHtml = html;
   }
 });
 
 module.exports = Editor;
-},{"react":136}],138:[function(require,module,exports){
+},{"./content_editable":137,"./editor_background":139,"react":136}],139:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
 
 var EditorBackground = React.createClass({displayName: 'EditorBackground',
 
-  width: function() {
-    return this.props.charWidth * this.props.widthInChars;
+  retinaWidth: function() {
+    return 2 * this.props.charWidth * this.props.widthInChars;
   },
 
-  height: function() {
-    return this.props.charHeight * this.props.heightInChars;
-  },
-
-  renderWidth: function() {
-    return 2 * this.width();
-  },
-
-  renderHeight: function() {
-    return 2 * this.height();
+  retinaHeight: function() {
+    return 2 * this.props.charHeight * this.props.heightInChars;
   },
 
   render: function() {
-    var style = {
-      width: this.width(),
-      height: this.height(),
-      top:  'calc(40% - ' + (this.width() / 2) + 'px)',
-      left: 'calc(50% - ' + (this.height() / 2) + 'px)'
-    };
-
     return (
-      React.DOM.canvas( {style:style, width:this.renderWidth(), height:this.renderHeight(), className:"editor-background"})
+      React.DOM.canvas( {className:this.props.className, width:this.retinaWidth(), height:this.retinaHeight()} )
     );
   },
 
@@ -17483,44 +17485,43 @@ var EditorBackground = React.createClass({displayName: 'EditorBackground',
 
   drawGrid: function() {
     var context = this.getDOMNode().getContext('2d');
-    var charWidth = this.props.charWidth;
-    var charHeight = this.props.charHeight;
-    var renderWidth = this.renderWidth();
-    var renderHeight = this.renderHeight();
+    var renderCharWidth = 2 * this.props.charWidth;
+    var renderCharHeight = 2 * this.props.charHeight;
+    var retinaWidth = this.retinaWidth();
+    var retinaHeight = this.retinaHeight();
 
     context.beginPath();
-    context.clearRect(0, 0, this.renderWidth(), this.renderHeight());
+    context.clearRect(0, 0, retinaWidth, retinaHeight);
 
     var x = 0;
-    while (x < renderWidth) {
-      x += (2 * charWidth);
+    while (x <= retinaWidth) {
       context.beginPath();
-      context.lineWidth="0.5";
+      context.lineWidth = '0.5';
       context.moveTo(x, 0);
-      context.lineTo(x, renderHeight);
+      context.lineTo(x, retinaHeight);
       context.stroke();
+      x += renderCharWidth;
     }
 
     var y = 0;
-    while (y < renderHeight) {
-      y += (2 * charHeight);
+    while (y <= retinaHeight) {
       context.beginPath();
-      context.lineWidth="0.5";
+      context.lineWidth = '0.5';
       context.moveTo(0, y);
-      context.lineTo(renderWidth, y);
+      context.lineTo(retinaWidth, y);
       context.stroke();
+      y += renderCharHeight;
     }
-  },
+  }
 
 });
 
 module.exports = EditorBackground;
 
-},{"react":136}],139:[function(require,module,exports){
+},{"react":136}],140:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
 var Editor = require('./editor');
-var EditorBackground = require('./editor_background');
 
 var App = React.createClass({displayName: 'App',
   getInitialState: function() {
@@ -17530,7 +17531,7 @@ var App = React.createClass({displayName: 'App',
   render: function() {
     return (
       React.DOM.div(null, 
-        this.state.fontLoaded ? this.renderEditor() : void 0,
+        this.renderEditor(),
         React.DOM.span( {ref:"testEl", className:"text-width-test"}, "t")
       )
     );
@@ -17542,10 +17543,9 @@ var App = React.createClass({displayName: 'App',
     var widthInChars = 38;
     var heightInChars = 18;
 
-    return [
-      EditorBackground( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} ),
-      Editor( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} )
-    ];
+    if (this.state.fontLoaded) {
+      return Editor( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} );
+    }
   },
 
   componentDidMount: function() {
@@ -17580,4 +17580,4 @@ var App = React.createClass({displayName: 'App',
 
 React.renderComponent(App(null ), document.getElementById('main'));
 
-},{"./editor":137,"./editor_background":138,"react":136}]},{},[139])
+},{"./editor":138,"react":136}]},{},[140])

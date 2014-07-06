@@ -1,14 +1,13 @@
 .editor {
   font-family: 'Inconsolata';
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
   position: absolute;
   overflow: hidden;
+  /*border: 1px solid #EEE;*/
 }
 
-.editor-background {
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
+.editor-content {
+  width: 100%;
+  height: 100%;
   position: absolute;
 }
 

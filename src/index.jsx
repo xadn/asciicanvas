@@ -1,7 +1,6 @@
 /** @jsx React.DOM */
 var React = require('react');
 var Editor = require('./editor');
-var EditorBackground = require('./editor_background');
 
 var App = React.createClass({
   getInitialState: function() {
@@ -11,7 +10,7 @@ var App = React.createClass({
   render: function() {
     return (
       <div>
-        {this.state.fontLoaded ? this.renderEditor() : void 0}
+        {this.renderEditor()}
         <span ref='testEl' className="text-width-test">t</span>
       </div>
     );
@@ -23,10 +22,9 @@ var App = React.createClass({
     var widthInChars = 38;
     var heightInChars = 18;
 
-    return [
-      <EditorBackground charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />,
-      <Editor charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />
-    ];
+    if (this.state.fontLoaded) {
+      return <Editor charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />;
+    }
   },
 
   componentDidMount: function() {
