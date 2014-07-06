@@ -33,31 +33,43 @@ var EditorBackground = React.createClass({
   },
 
   componentDidMount: function() {
-    var context = this.getDOMNode().getContext('2d');
+    this.drawGrid();
+  },
 
-    var charWidth = 8;
-    var charHeight = 17;
+  componentDidUpdate: function() {
+    this.drawGrid();
+  },
+
+  drawGrid: function() {
+    var context = this.getDOMNode().getContext('2d');
+    var charWidth = this.props.charWidth;
+    var charHeight = this.props.charHeight;
+    var renderWidth = this.renderWidth();
+    var renderHeight = this.renderHeight();
+
+    context.beginPath();
+    context.clearRect(0, 0, this.renderWidth(), this.renderHeight());
 
     var x = 0;
-    while (x < this.renderWidth()) {
+    while (x < renderWidth) {
       x += (2 * charWidth);
       context.beginPath();
-      context.lineWidth="1";
+      context.lineWidth="0.5";
       context.moveTo(x, 0);
-      context.lineTo(x, this.renderHeight());
+      context.lineTo(x, renderHeight);
       context.stroke();
     }
 
     var y = 0;
-    while (y < this.renderHeight()) {
+    while (y < renderHeight) {
       y += (2 * charHeight);
       context.beginPath();
-      context.lineWidth="1";
+      context.lineWidth="0.5";
       context.moveTo(0, y);
-      context.lineTo(this.renderWidth(), y);
+      context.lineTo(renderWidth, y);
       context.stroke();
     }
-  }
+  },
 
 });
 

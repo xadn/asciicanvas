@@ -17419,12 +17419,13 @@ var Editor = React.createClass({displayName: 'Editor',
       React.DOM.div( {className:"editor", contentEditable:true, style:style, onInput:this.emitChange, onBlur:this.emitChange, dangerouslySetInnerHTML:{__html: this.props.html}} )
     );
   },
+
   shouldComponentUpdate: function(nextProps){
     return nextProps.html !== this.getDOMNode().innerHTML;
   },
+
   emitChange: function(){
     var html = this.getDOMNode().innerHTML;
-
     if (this.props.onChange && html !== this.lastHtml) {
       this.props.onChange({
         target: {
@@ -17432,7 +17433,6 @@ var Editor = React.createClass({displayName: 'Editor',
         }
       });
     }
-
     this.lastHtml = html;
   }
 });
@@ -17474,31 +17474,43 @@ var EditorBackground = React.createClass({displayName: 'EditorBackground',
   },
 
   componentDidMount: function() {
-    var context = this.getDOMNode().getContext('2d');
+    this.drawGrid();
+  },
 
-    var charWidth = 8;
-    var charHeight = 17;
+  componentDidUpdate: function() {
+    this.drawGrid();
+  },
+
+  drawGrid: function() {
+    var context = this.getDOMNode().getContext('2d');
+    var charWidth = this.props.charWidth;
+    var charHeight = this.props.charHeight;
+    var renderWidth = this.renderWidth();
+    var renderHeight = this.renderHeight();
+
+    context.beginPath();
+    context.clearRect(0, 0, this.renderWidth(), this.renderHeight());
 
     var x = 0;
-    while (x < this.renderWidth()) {
+    while (x < renderWidth) {
       x += (2 * charWidth);
       context.beginPath();
-      context.lineWidth="1";
+      context.lineWidth="0.5";
       context.moveTo(x, 0);
-      context.lineTo(x, this.renderHeight());
+      context.lineTo(x, renderHeight);
       context.stroke();
     }
 
     var y = 0;
-    while (y < this.renderHeight()) {
+    while (y < renderHeight) {
       y += (2 * charHeight);
       context.beginPath();
-      context.lineWidth="1";
+      context.lineWidth="0.5";
       context.moveTo(0, y);
-      context.lineTo(this.renderWidth(), y);
+      context.lineTo(renderWidth, y);
       context.stroke();
     }
-  }
+  },
 
 });
 
@@ -17511,42 +17523,61 @@ var Editor = require('./editor');
 var EditorBackground = require('./editor_background');
 
 var App = React.createClass({displayName: 'App',
-  render: function() {
-    var charWidth = 8;
-    var charHeight = 17;
-    var widthInChars = 38;
-    var heightInChars = 18;
+  getInitialState: function() {
+    return {firstRender: true, fontLoaded: false, charWidth: 1, charHeight: 1};
+  },
 
+  render: function() {
     return (
       React.DOM.div(null, 
-        React.DOM.div(null, "Hello World"),
-        EditorBackground( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} ),
-        Editor( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} ),
-        React.DOM.div(null, "Hello World"),
+        this.state.fontLoaded ? this.renderEditor() : void 0,
         React.DOM.span( {ref:"testEl", className:"text-width-test"}, "t")
       )
     );
   },
 
-  componentDidMount: function() {
-    var testEl = this.refs.testEl.getDOMNode();
-    console.log('width:', testEl.offsetWidth);
-    console.log('height:', testEl.offsetHeight);
+  renderEditor: function() {
+    var charWidth = this.state.charWidth;
+    var charHeight = this.state.charHeight;
+    var widthInChars = 38;
+    var heightInChars = 18;
 
-    // var self = this;
-    // setInterval(function() {
-    //   self.forceUpdate();
-    // }, 1000);
+    return [
+      EditorBackground( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} ),
+      Editor( {charWidth:charWidth, charHeight:charHeight, widthInChars:widthInChars, heightInChars:heightInChars} )
+    ];
+  },
+
+  componentDidMount: function() {
+    this.updateCharDimensions();
   },
 
   componentDidUpdate: function() {
+    this.updateCharDimensions();
+  },
+
+  updateCharDimensions: function() {
     var testEl = this.refs.testEl.getDOMNode();
-    console.log('width:', testEl.offsetWidth);
-    console.log('height:', testEl.offsetHeight);
+    var attrs = {
+      charWidth: testEl.offsetWidth,
+      charHeight: testEl.offsetHeight,
+      firstRender: false
+    };
+
+    if (attrs.charWidth !== this.state.charWidth || attrs.charHeight !== this.state.charHeight) {
+      if (!this.state.firstRender) {
+        attrs.fontLoaded = true;
+      }
+      this.setState(attrs);
+    }
+
+    if (!this.state.fontLoaded) {
+      console.count('waiting for webfont to load')
+      requestAnimationFrame(this.updateCharDimensions);
+    }
   }
 });
 
-setTimeout(function() {
-  React.renderComponent(App(null ), document.getElementById('main'));
-}, 0);
+React.renderComponent(App(null ), document.getElementById('main'));
+
 },{"./editor":137,"./editor_background":138,"react":136}]},{},[139])

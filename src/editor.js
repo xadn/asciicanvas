@@ -22,12 +22,13 @@ var Editor = React.createClass({
       <div className='editor' contentEditable style={style} onInput={this.emitChange} onBlur={this.emitChange} dangerouslySetInnerHTML={{__html: this.props.html}} />
     );
   },
+
   shouldComponentUpdate: function(nextProps){
     return nextProps.html !== this.getDOMNode().innerHTML;
   },
+
   emitChange: function(){
     var html = this.getDOMNode().innerHTML;
-
     if (this.props.onChange && html !== this.lastHtml) {
       this.props.onChange({
         target: {
@@ -35,7 +36,6 @@ var Editor = React.createClass({
         }
       });
     }
-
     this.lastHtml = html;
   }
 });

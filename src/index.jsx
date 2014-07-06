@@ -4,41 +4,59 @@ var Editor = require('./editor');
 var EditorBackground = require('./editor_background');
 
 var App = React.createClass({
-  render: function() {
-    var charWidth = 8;
-    var charHeight = 17;
-    var widthInChars = 38;
-    var heightInChars = 18;
+  getInitialState: function() {
+    return {firstRender: true, fontLoaded: false, charWidth: 1, charHeight: 1};
+  },
 
+  render: function() {
     return (
       <div>
-        <div>Hello World</div>
-        <EditorBackground charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />
-        <Editor charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />
-        <div>Hello World</div>
+        {this.state.fontLoaded ? this.renderEditor() : void 0}
         <span ref='testEl' className="text-width-test">t</span>
       </div>
     );
   },
 
-  componentDidMount: function() {
-    var testEl = this.refs.testEl.getDOMNode();
-    console.log('width:', testEl.offsetWidth);
-    console.log('height:', testEl.offsetHeight);
+  renderEditor: function() {
+    var charWidth = this.state.charWidth;
+    var charHeight = this.state.charHeight;
+    var widthInChars = 38;
+    var heightInChars = 18;
 
-    // var self = this;
-    // setInterval(function() {
-    //   self.forceUpdate();
-    // }, 1000);
+    return [
+      <EditorBackground charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />,
+      <Editor charWidth={charWidth} charHeight={charHeight} widthInChars={widthInChars} heightInChars={heightInChars} />
+    ];
+  },
+
+  componentDidMount: function() {
+    this.updateCharDimensions();
   },
 
   componentDidUpdate: function() {
+    this.updateCharDimensions();
+  },
+
+  updateCharDimensions: function() {
     var testEl = this.refs.testEl.getDOMNode();
-    console.log('width:', testEl.offsetWidth);
-    console.log('height:', testEl.offsetHeight);
+    var attrs = {
+      charWidth: testEl.offsetWidth,
+      charHeight: testEl.offsetHeight,
+      firstRender: false
+    };
+
+    if (attrs.charWidth !== this.state.charWidth || attrs.charHeight !== this.state.charHeight) {
+      if (!this.state.firstRender) {
+        attrs.fontLoaded = true;
+      }
+      this.setState(attrs);
+    }
+
+    if (!this.state.fontLoaded) {
+      console.count('waiting for webfont to load')
+      requestAnimationFrame(this.updateCharDimensions);
+    }
   }
 });
 
-setTimeout(function() {
-  React.renderComponent(<App />, document.getElementById('main'));
-}, 0);
+React.renderComponent(<App />, document.getElementById('main'));
