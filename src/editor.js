@@ -1,13 +1,16 @@
 /** @jsx React.DOM */
 var React = require('react');
 var EditorBackground = require('./editor_background');
-var EditorField = require('./editor_field');
 
 // 38 * 18 = 634
 function defaultHtml(length) {
   var html = '';
   while (html.length < length) { html += ' '; }
   return html;
+}
+
+function prepareText(text, length) {
+  return text.slice(0, length);
 }
 
 var Editor = React.createClass({
@@ -28,7 +31,7 @@ var Editor = React.createClass({
   },
 
   handleChange: function(e) {
-    this.setState({text: e.target.value});
+    this.setState({text: prepareText(e.target.value, this.maxLength())});
   },
 
   render: function() {
@@ -42,7 +45,7 @@ var Editor = React.createClass({
     return (
       <div className='editor' style={style}>
         <EditorBackground className='editor-content' charWidth={this.props.charWidth} charHeight={this.props.charHeight} widthInChars={this.props.widthInChars} heightInChars={this.props.heightInChars} />
-        <EditorField className='editor-content' value={this.state.text} onChange={this.handleChange} />
+        <textarea className='editor-content' value={this.state.text} onChange={this.handleChange} />
       </div>
     );
   }

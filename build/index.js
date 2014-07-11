@@ -17397,42 +17397,17 @@ module.exports = require('./lib/React');
 },{"./lib/React":25}],137:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
-var ContentEditable = React.createClass({displayName: 'ContentEditable',
-
-  render: function(){
-    return (
-      React.DOM.div( {className:this.props.className, onInput:this.emitChange, onBlur:this.emitChange, contentEditable:true, dangerouslySetInnerHTML:{__html: this.props.html}} )
-    );
-  },
-
-  shouldComponentUpdate: function(nextProps){
-    return nextProps.html !== this.getDOMNode().innerHTML;
-  },
-
-  emitChange: function(){
-    var html = this.getDOMNode().innerHTML;
-
-    if (this.props.onChange && html !== this.lastHtml) {
-      this.props.onChange({target: {value: html}});
-    }
-
-    this.lastHtml = html;
-  }
-
-});
-
-module.exports = ContentEditable;
-},{"react":136}],138:[function(require,module,exports){
-/** @jsx React.DOM */
-var React = require('react');
 var EditorBackground = require('./editor_background');
-var EditorField = require('./editor_field');
 
 // 38 * 18 = 634
 function defaultHtml(length) {
   var html = '';
   while (html.length < length) { html += ' '; }
   return html;
+}
+
+function prepareText(text, length) {
+  return text.slice(0, length);
 }
 
 var Editor = React.createClass({displayName: 'Editor',
@@ -17453,7 +17428,7 @@ var Editor = React.createClass({displayName: 'Editor',
   },
 
   handleChange: function(e) {
-    this.setState({text: e.target.value});
+    this.setState({text: prepareText(e.target.value, this.maxLength())});
   },
 
   render: function() {
@@ -17467,14 +17442,14 @@ var Editor = React.createClass({displayName: 'Editor',
     return (
       React.DOM.div( {className:"editor", style:style}, 
         EditorBackground( {className:"editor-content", charWidth:this.props.charWidth, charHeight:this.props.charHeight, widthInChars:this.props.widthInChars, heightInChars:this.props.heightInChars} ),
-        EditorField( {className:"editor-content", value:this.state.text, onChange:this.handleChange} )
+        React.DOM.textarea( {className:"editor-content", value:this.state.text, onChange:this.handleChange} )
       )
     );
   }
 });
 
 module.exports = Editor;
-},{"./editor_background":139,"./editor_field":140,"react":136}],139:[function(require,module,exports){
+},{"./editor_background":138,"react":136}],138:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
 
@@ -17537,47 +17512,7 @@ var EditorBackground = React.createClass({displayName: 'EditorBackground',
 
 module.exports = EditorBackground;
 
-},{"react":136}],140:[function(require,module,exports){
-/** @jsx React.DOM */
-var React = require('react');
-var ContentEditable = require('./content_editable');
-
-var ESCAPES = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  ' ': '&nbsp;'
-};
-
-function charEscape(c) {
-  return ESCAPES[c] ? ESCAPES[c] : c;
-}
-
-function htmlEscape(html) {
-  return [].map.call(html, charEscape).join('');
-}
-
-function noop() {}
-
-var EditorField = React.createClass({displayName: 'EditorField',
-  getDefaultProps: function() {
-    return {value: '', onChange: noop};
-  },
-
-  handleChange: function(e) {
-    var node = this.getDOMNode();
-    this.props.onChange({target: {value: node.textContent}});
-  },
-
-  render: function() {
-    return (
-      ContentEditable( {className:this.props.className, html:htmlEscape(this.props.value), onChange:this.handleChange} )
-    );
-  }
-});
-
-module.exports = EditorField;
-},{"./content_editable":137,"react":136}],141:[function(require,module,exports){
+},{"react":136}],139:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
 var Editor = require('./editor');
@@ -17640,4 +17575,4 @@ var App = React.createClass({displayName: 'App',
 
 React.renderComponent(App(null ), document.getElementById('main'));
 
-},{"./editor":138,"react":136}]},{},[141])
+},{"./editor":137,"react":136}]},{},[139])
