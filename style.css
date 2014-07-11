@@ -2,7 +2,6 @@
   font-family: 'Inconsolata';
   position: absolute;
   overflow: hidden;
-  /*border: 1px solid #EEE;*/
 }
 
 .editor-content {
@@ -10,5 +9,16 @@
   height: 100%;
   position: absolute;
 }
+
+.font-test-editor {
+  font-family: 'Inconsolata';
+  opacity: 0;
+}
+
+.font-test-default {
+  font-family: 'Times';
+  opacity: 0;
+}
+
 
 

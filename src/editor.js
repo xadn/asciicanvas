@@ -1,15 +1,34 @@
 /** @jsx React.DOM */
 var React = require('react');
 var EditorBackground = require('./editor_background');
-var ContentEditable = require('./content_editable');
+var EditorField = require('./editor_field');
+
+// 38 * 18 = 634
+function defaultHtml(length) {
+  var html = '';
+  while (html.length < length) { html += ' '; }
+  return html;
+}
 
 var Editor = React.createClass({
+  getInitialState: function() {
+    return {text: defaultHtml(this.maxLength())};
+  },
+
   width: function() {
     return this.props.charWidth * this.props.widthInChars;
   },
 
   height: function() {
     return this.props.charHeight * this.props.heightInChars;
+  },
+
+  maxLength: function() {
+    return this.props.widthInChars * this.props.heightInChars;
+  },
+
+  handleChange: function(e) {
+    this.setState({text: e.target.value});
   },
 
   render: function() {
@@ -23,7 +42,7 @@ var Editor = React.createClass({
     return (
       <div className='editor' style={style}>
         <EditorBackground className='editor-content' charWidth={this.props.charWidth} charHeight={this.props.charHeight} widthInChars={this.props.widthInChars} heightInChars={this.props.heightInChars} />
-        <ContentEditable className='editor-content' />
+        <EditorField className='editor-content' value={this.state.text} onChange={this.handleChange} />
       </div>
     );
   }

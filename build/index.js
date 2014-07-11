@@ -17426,15 +17426,34 @@ module.exports = ContentEditable;
 /** @jsx React.DOM */
 var React = require('react');
 var EditorBackground = require('./editor_background');
-var ContentEditable = require('./content_editable');
+var EditorField = require('./editor_field');
+
+// 38 * 18 = 634
+function defaultHtml(length) {
+  var html = '';
+  while (html.length < length) { html += ' '; }
+  return html;
+}
 
 var Editor = React.createClass({displayName: 'Editor',
+  getInitialState: function() {
+    return {text: defaultHtml(this.maxLength())};
+  },
+
   width: function() {
     return this.props.charWidth * this.props.widthInChars;
   },
 
   height: function() {
     return this.props.charHeight * this.props.heightInChars;
+  },
+
+  maxLength: function() {
+    return this.props.widthInChars * this.props.heightInChars;
+  },
+
+  handleChange: function(e) {
+    this.setState({text: e.target.value});
   },
 
   render: function() {
@@ -17448,30 +17467,30 @@ var Editor = React.createClass({displayName: 'Editor',
     return (
       React.DOM.div( {className:"editor", style:style}, 
         EditorBackground( {className:"editor-content", charWidth:this.props.charWidth, charHeight:this.props.charHeight, widthInChars:this.props.widthInChars, heightInChars:this.props.heightInChars} ),
-        ContentEditable( {className:"editor-content"} )
+        EditorField( {className:"editor-content", value:this.state.text, onChange:this.handleChange} )
       )
     );
   }
 });
 
 module.exports = Editor;
-},{"./content_editable":137,"./editor_background":139,"react":136}],139:[function(require,module,exports){
+},{"./editor_background":139,"./editor_field":140,"react":136}],139:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
 
 var EditorBackground = React.createClass({displayName: 'EditorBackground',
 
-  retinaWidth: function() {
+  renderWidth: function() {
     return 2 * this.props.charWidth * this.props.widthInChars;
   },
 
-  retinaHeight: function() {
+  renderHeight: function() {
     return 2 * this.props.charHeight * this.props.heightInChars;
   },
 
   render: function() {
     return (
-      React.DOM.canvas( {className:this.props.className, width:this.retinaWidth(), height:this.retinaHeight()} )
+      React.DOM.canvas( {className:this.props.className, width:this.renderWidth(), height:this.renderHeight()} )
     );
   },
 
@@ -17487,28 +17506,28 @@ var EditorBackground = React.createClass({displayName: 'EditorBackground',
     var context = this.getDOMNode().getContext('2d');
     var renderCharWidth = 2 * this.props.charWidth;
     var renderCharHeight = 2 * this.props.charHeight;
-    var retinaWidth = this.retinaWidth();
-    var retinaHeight = this.retinaHeight();
+    var renderWidth = this.renderWidth();
+    var renderHeight = this.renderHeight();
 
     context.beginPath();
-    context.clearRect(0, 0, retinaWidth, retinaHeight);
+    context.clearRect(0, 0, renderWidth, renderHeight);
 
     var x = 0;
-    while (x <= retinaWidth) {
+    while (x <= renderWidth) {
       context.beginPath();
       context.lineWidth = '0.5';
       context.moveTo(x, 0);
-      context.lineTo(x, retinaHeight);
+      context.lineTo(x, renderHeight);
       context.stroke();
       x += renderCharWidth;
     }
 
     var y = 0;
-    while (y <= retinaHeight) {
+    while (y <= renderHeight) {
       context.beginPath();
       context.lineWidth = '0.5';
       context.moveTo(0, y);
-      context.lineTo(retinaWidth, y);
+      context.lineTo(renderWidth, y);
       context.stroke();
       y += renderCharHeight;
     }
@@ -17521,18 +17540,60 @@ module.exports = EditorBackground;
 },{"react":136}],140:[function(require,module,exports){
 /** @jsx React.DOM */
 var React = require('react');
-var Editor = require('./editor');
+var ContentEditable = require('./content_editable');
 
-var App = React.createClass({displayName: 'App',
-  getInitialState: function() {
-    return {firstRender: true, fontLoaded: false, charWidth: 1, charHeight: 1};
+var ESCAPES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  ' ': '&nbsp;'
+};
+
+function charEscape(c) {
+  return ESCAPES[c] ? ESCAPES[c] : c;
+}
+
+function htmlEscape(html) {
+  return [].map.call(html, charEscape).join('');
+}
+
+function noop() {}
+
+var EditorField = React.createClass({displayName: 'EditorField',
+  getDefaultProps: function() {
+    return {value: '', onChange: noop};
+  },
+
+  handleChange: function(e) {
+    var node = this.getDOMNode();
+    this.props.onChange({target: {value: node.textContent}});
   },
 
   render: function() {
     return (
+      ContentEditable( {className:this.props.className, html:htmlEscape(this.props.value), onChange:this.handleChange} )
+    );
+  }
+});
+
+module.exports = EditorField;
+},{"./content_editable":137,"react":136}],141:[function(require,module,exports){
+/** @jsx React.DOM */
+var React = require('react');
+var Editor = require('./editor');
+
+var App = React.createClass({displayName: 'App',
+  getInitialState: function() {
+    return {fontLoaded: false, charWidth: 1, charHeight: 1};
+  },
+
+  render: function() {
+    console.count('render')
+    return (
       React.DOM.div(null, 
         this.renderEditor(),
-        React.DOM.span( {ref:"testEl", className:"text-width-test"}, "t")
+        React.DOM.span( {ref:"fontTestDefault", className:"font-test-default"}, "t"),
+        React.DOM.span( {ref:"fontTestEditor", className:"font-test-editor"}, "t")
       )
     );
   },
@@ -17557,18 +17618,17 @@ var App = React.createClass({displayName: 'App',
   },
 
   updateCharDimensions: function() {
-    var testEl = this.refs.testEl.getDOMNode();
-    var attrs = {
-      charWidth: testEl.offsetWidth,
-      charHeight: testEl.offsetHeight,
-      firstRender: false
-    };
+    if (this.state.fontLoaded) { return; }
 
-    if (attrs.charWidth !== this.state.charWidth || attrs.charHeight !== this.state.charHeight) {
-      if (!this.state.firstRender) {
-        attrs.fontLoaded = true;
-      }
-      this.setState(attrs);
+    var defaultFont = this.refs.fontTestDefault.getDOMNode();
+    var editorFont = this.refs.fontTestEditor.getDOMNode();
+
+    if (editorFont.offsetWidth !== defaultFont.offsetWidth && editorFont.offsetHeight !== defaultFont.offsetHeight) {
+      this.setState({
+        charWidth: editorFont.offsetWidth - 1,
+        charHeight: editorFont.offsetHeight,
+        fontLoaded: true
+      });
     }
 
     if (!this.state.fontLoaded) {
@@ -17580,4 +17640,4 @@ var App = React.createClass({displayName: 'App',
 
 React.renderComponent(App(null ), document.getElementById('main'));
 
-},{"./editor":138,"react":136}]},{},[140])
+},{"./editor":138,"react":136}]},{},[141])

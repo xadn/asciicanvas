@@ -3,17 +3,17 @@ var React = require('react');
 
 var EditorBackground = React.createClass({
 
-  retinaWidth: function() {
+  renderWidth: function() {
     return 2 * this.props.charWidth * this.props.widthInChars;
   },
 
-  retinaHeight: function() {
+  renderHeight: function() {
     return 2 * this.props.charHeight * this.props.heightInChars;
   },
 
   render: function() {
     return (
-      <canvas className={this.props.className} width={this.retinaWidth()} height={this.retinaHeight()} />
+      <canvas className={this.props.className} width={this.renderWidth()} height={this.renderHeight()} />
     );
   },
 
@@ -29,28 +29,28 @@ var EditorBackground = React.createClass({
     var context = this.getDOMNode().getContext('2d');
     var renderCharWidth = 2 * this.props.charWidth;
     var renderCharHeight = 2 * this.props.charHeight;
-    var retinaWidth = this.retinaWidth();
-    var retinaHeight = this.retinaHeight();
+    var renderWidth = this.renderWidth();
+    var renderHeight = this.renderHeight();
 
     context.beginPath();
-    context.clearRect(0, 0, retinaWidth, retinaHeight);
+    context.clearRect(0, 0, renderWidth, renderHeight);
 
     var x = 0;
-    while (x <= retinaWidth) {
+    while (x <= renderWidth) {
       context.beginPath();
       context.lineWidth = '0.5';
       context.moveTo(x, 0);
-      context.lineTo(x, retinaHeight);
+      context.lineTo(x, renderHeight);
       context.stroke();
       x += renderCharWidth;
     }
 
     var y = 0;
-    while (y <= retinaHeight) {
+    while (y <= renderHeight) {
       context.beginPath();
       context.lineWidth = '0.5';
       context.moveTo(0, y);
-      context.lineTo(retinaWidth, y);
+      context.lineTo(renderWidth, y);
       context.stroke();
       y += renderCharHeight;
     }

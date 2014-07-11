@@ -4,14 +4,16 @@ var Editor = require('./editor');
 
 var App = React.createClass({
   getInitialState: function() {
-    return {firstRender: true, fontLoaded: false, charWidth: 1, charHeight: 1};
+    return {fontLoaded: false, charWidth: 1, charHeight: 1};
   },
 
   render: function() {
+    console.count('render')
     return (
       <div>
         {this.renderEditor()}
-        <span ref='testEl' className="text-width-test">t</span>
+        <span ref='fontTestDefault' className="font-test-default">t</span>
+        <span ref='fontTestEditor' className="font-test-editor">t</span>
       </div>
     );
   },
@@ -36,18 +38,17 @@ var App = React.createClass({
   },
 
   updateCharDimensions: function() {
-    var testEl = this.refs.testEl.getDOMNode();
-    var attrs = {
-      charWidth: testEl.offsetWidth,
-      charHeight: testEl.offsetHeight,
-      firstRender: false
-    };
+    if (this.state.fontLoaded) { return; }
 
-    if (attrs.charWidth !== this.state.charWidth || attrs.charHeight !== this.state.charHeight) {
-      if (!this.state.firstRender) {
-        attrs.fontLoaded = true;
-      }
-      this.setState(attrs);
+    var defaultFont = this.refs.fontTestDefault.getDOMNode();
+    var editorFont = this.refs.fontTestEditor.getDOMNode();
+
+    if (editorFont.offsetWidth !== defaultFont.offsetWidth && editorFont.offsetHeight !== defaultFont.offsetHeight) {
+      this.setState({
+        charWidth: editorFont.offsetWidth - 1,
+        charHeight: editorFont.offsetHeight,
+        fontLoaded: true
+      });
     }
 
     if (!this.state.fontLoaded) {
