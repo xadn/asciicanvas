@@ -14,6 +14,7 @@
     "react": "^0.10.0",
     "reactify": "^0.13.1",
     "browserify": "^4.2.0",
-    "watchify": "^0.10.2"
+    "watchify": "^0.10.2",
+    "diff-match-patch": "^1.0.0"
   }
 }
