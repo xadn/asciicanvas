@@ -10,7 +10,8 @@ function defaultHtml(length) {
 }
 
 function prepareText(text, length) {
-  return text.slice(0, length);
+  // return text.slice(0, length);
+  return text;
 }
 
 var Editor = React.createClass({
@@ -31,7 +32,11 @@ var Editor = React.createClass({
   },
 
   handleChange: function(e) {
-    this.setState({text: prepareText(e.target.value, this.maxLength())});
+    var target = e.target;
+    this.setState({
+      text: prepareText(target.value, this.maxLength()),
+      selectionStart: target.selectionStart
+    });
   },
 
   render: function() {
@@ -45,7 +50,7 @@ var Editor = React.createClass({
     return (
       <div className='editor' style={style}>
         <EditorBackground className='editor-content' charWidth={this.props.charWidth} charHeight={this.props.charHeight} widthInChars={this.props.widthInChars} heightInChars={this.props.heightInChars} />
-        <textarea className='editor-content' value={this.state.text} onChange={this.handleChange} />
+        <textarea ref='ef' className='editor-content' value={this.state.text} onChange={this.handleChange} />
       </div>
     );
   }

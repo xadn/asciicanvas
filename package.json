@@ -4,9 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "./node_modules/watchify/bin/cmd.js src/index.jsx -t reactify -o build/index.js",
-    "build": "./node_modules/browserify/bin/cmd.js src/index.jsx -t reactify -o build/index.js"
+    "start": "watchify src/index.jsx -t reactify -o build/index.js",
+    "build": "browserify src/index.jsx -t reactify -o build/index.js"
   },
   "author": "",
   "license": "ISC",
